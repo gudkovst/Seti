@@ -1,2 +1,2 @@
-rootProject.name = "lab1"
-include("main")
+rootProject.name = "Application"
+include("lab1")
