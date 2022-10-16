@@ -4,8 +4,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-public class
-Client {
+public class Client {
     private final Socket socket;
     private final String filename;
     private int localPort = 8008;
