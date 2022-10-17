@@ -7,16 +7,7 @@ import java.nio.charset.StandardCharsets;
 public class Client {
     private final Socket socket;
     private final String filename;
-    private int localPort = 8008;
-
-    public static void main(String[] args) throws IOException {
-        if (args.length != 3){
-            System.out.println("Inappropriate number of parameters\n Check: [filename] [hostname] [port]");
-            return;
-        }
-        Client client = new Client(args[0], args[1], Integer.parseInt(args[2]));
-        System.out.println(client.send());
-    }
+    private final int localPort = 8008;
 
     public Client(String filename, String host, int port) throws IOException {
         socket = new Socket(host, port, InetAddress.getLocalHost(), localPort);
