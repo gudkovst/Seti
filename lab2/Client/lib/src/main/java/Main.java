@@ -12,7 +12,6 @@ public class Main {
             return;
         }
         Client client = new Client(args[0], args[1], Integer.parseInt(args[2]));
-        System.out.println(args[0]);
         System.out.println(client.send());
     }
 
