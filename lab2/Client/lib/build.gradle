@@ -4,7 +4,7 @@ apply plugin: 'application'
 
 application {
     // Define the main class for the application.
-    mainClass.set("Client")
+    mainClass.set("Main")
 }
 repositories {
     mavenLocal()
