@@ -1,0 +1,21 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+
+application {
+    // Define the main class for the application.
+    mainClass.set("Main")
+}
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+jar {
+    baseName = 'lab2'
+    version =  '0.1.0'
+}
+
+task wrapperl(type: Wrapper) {
+    gradleVersion = '7.5.1'
+}
