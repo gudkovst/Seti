@@ -18,6 +18,9 @@ public class JsonParser {
         try {
             JsonNode jsonNode = objectMapper.readValue(json, JsonNode.class);
             JsonNode list = jsonNode.get("hits");
+            if (list == null || list == NullNode.getInstance()){
+                return null;
+            }
             for (JsonNode node : list) {
                 String name = node.get("name").asText();
                 double lat = node.get("point").get("lat").asDouble();
@@ -37,9 +40,8 @@ public class JsonParser {
             List<Weather> weatherList = new ArrayList<>();
             JsonNode list = jsonNode.get("weather");
             for (JsonNode node : list){
-                String weather = node.get("main").asText();
                 String description = node.get("description").asText();
-                weatherList.add(new Weather(weather, description));
+                weatherList.add(new Weather(description));
             }
             double temp = jsonNode.get("main").get("temp").asDouble();
             double speed = jsonNode.get("wind").get("speed").asDouble();

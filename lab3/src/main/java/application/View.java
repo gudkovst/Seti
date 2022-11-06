@@ -5,6 +5,7 @@ import records.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -16,6 +17,7 @@ public class View extends JFrame implements Runnable{
     private final Requester requester;
     private JTextField textNamePlace;
     private JLabel messFind;
+    private boolean flagFind = false;
 
     public View(Requester req){
         requester = req;
@@ -32,6 +34,7 @@ public class View extends JFrame implements Runnable{
         getContentPane().setBackground(Color.white); // Set background color
         setDefaultCloseOperation(EXIT_ON_CLOSE); // When "(X)" clicked, process is being killed
         setTitle("Places"); // Set title
+        setResizable(true);
         setVisible(true); // Show everything
     }
 
@@ -39,7 +42,7 @@ public class View extends JFrame implements Runnable{
         textNamePlace = new JTextField();
         textNamePlace.setToolTipText("Name place");
         textNamePlace.setHorizontalAlignment(JTextField.CENTER);
-        Button buttonFind = new Button("Find");
+        JButton buttonFind = new JButton("Find");
         JLabel messHead = new JLabel("Enter the name of the place you are interested in:");
         messHead.setHorizontalAlignment(JLabel.CENTER);
 
@@ -49,7 +52,7 @@ public class View extends JFrame implements Runnable{
         entryField.add(textNamePlace);
         entryField.add(buttonFind);
         setContentPane(entryField);
-
+        buttonFind.setMnemonic(KeyEvent.VK_ENTER);
         buttonFind.addActionListener(e -> {
             try {
                 handleFindGeocode();
@@ -60,73 +63,94 @@ public class View extends JFrame implements Runnable{
     }
 
     private void handleFindGeocode() throws IOException, ExecutionException, InterruptedException {
-        String namePlace = textNamePlace.getText();
+        if (flagFind){
+            return;
+        }
+        flagFind = true;
+        String namePlace = textNamePlace.getText().replace(" ", "+");
         CompletableFuture<List<GeocodeRecord>> request = requester.requestGeocode(namePlace);
-        messFind = new JLabel("Wait, please. There is a search.");
-        messFind.setHorizontalAlignment(JLabel.CENTER);
-        entryField.add(messFind);
-        setContentPane(entryField);
         request.thenAccept(this::showListLocations);
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            messFind = new JLabel("Wait, please. There is a search.");
+            messFind.setHorizontalAlignment(JLabel.CENTER);
+            entryField.add(messFind);
+            setContentPane(entryField);
+        });
     }
 
     private void showListLocations(List<GeocodeRecord> listLocations){
         locations = listLocations;
-        if (locations == null){
-            System.out.println("FAIL");
+        if (locations == null || locations.size() == 0){
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                JLabel label = new JLabel("Nothing found");
+                label.setHorizontalAlignment(JLabel.CENTER);
+                entryField.removeAll();
+                entryField.add(label);
+                setContentPane(entryField);
+            });
             return;
         }
-        entryField.setLayout(new GridLayout(locations.size(), 1));
-        Button[] locationsButtons = new Button[locations.size()];
-        entryField.removeAll();
-        for (int i = 0; i < locations.size(); i++){
-            GeocodeRecord location = locations.get(i);
-            locationsButtons[i] = new Button(location.getName());
-            entryField.add(locationsButtons[i]);
-            locationsButtons[i].addActionListener(e -> handleLocation(location));
-        }
-        setContentPane(entryField);
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            entryField.setLayout(new GridLayout(locations.size(), 1));
+            Button[] locationsButtons = new Button[locations.size()];
+            entryField.removeAll();
+            for (int i = 0; i < locations.size(); i++){
+                GeocodeRecord location = locations.get(i);
+                locationsButtons[i] = new Button(location.getName());
+                entryField.add(locationsButtons[i]);
+                locationsButtons[i].addActionListener(e -> handleLocation(location));
+            }
+            setContentPane(entryField);
+        });
     }
 
     private void handleLocation(GeocodeRecord location){
         CompletableFuture<WeatherRecord> weather = requester.requestWeather(location.getLat(), location.getLng());
         CompletableFuture<List<PlacesRecord>> places = requester.requestPlaces(location.getLat(), location.getLng());
-        JLabel label = new JLabel("Interesting places in " + location.getName());
-        label.setHorizontalAlignment(JLabel.CENTER);
-        Button returnButton = new Button("return to list locations");
-        entryField.removeAll();
-        entryField.add(label);
-        entryField.add(messFind);
-        entryField.add(returnButton);
-        setContentPane(entryField);
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            JLabel label = new JLabel("Interesting places in " + location.getName());
+            label.setHorizontalAlignment(JLabel.CENTER);
+            Button returnButton = new Button("return to list locations");
+            entryField.removeAll();
+            entryField.add(label);
+            entryField.add(messFind);
+            entryField.add(returnButton);
+            setContentPane(entryField);
+            returnButton.addActionListener(e -> showListLocations(locations));
+        });
         weather.thenAccept(this::showWeather);
         places.thenAccept(this::findDescrPlaces);
-        returnButton.addActionListener(e -> showListLocations(locations));
     }
 
     private void showWeather(WeatherRecord weather){
-        String ws = "    ";
-        String info = "Weather:";
-        for (Weather w : weather.getWeather()){
-            info += ws + w.getDescription();
-        }
-        info += ws + "temperature = " + weather.getTemperature();
-        info += ws + "wind speed = " + weather.getWindSpeed();
-        JLabel weatherLabel = new JLabel(info);
-        weatherLabel.setHorizontalAlignment(JLabel.CENTER);
-        entryField.add(weatherLabel);
-        entryField.remove(messFind);
-        setContentPane(entryField);
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            String ws = "    ";
+            String info = "Weather:";
+            for (Weather w : weather.getWeather()){
+                info += ws + w.getWeather();
+            }
+            info += ws + "temperature = " + weather.getTemperature();
+            info += ws + "wind speed = " + weather.getWindSpeed();
+            JLabel weatherLabel = new JLabel(info);
+            weatherLabel.setHorizontalAlignment(JLabel.CENTER);
+            entryField.add(weatherLabel);
+            entryField.remove(messFind);
+            setContentPane(entryField);
+        });
     }
 
     private void findDescrPlaces(List<PlacesRecord> places){
-        entryField.setLayout(new GridLayout(Math.min(places.size(), Config.MAX_RECORDS), 1));
+        entryField.setLayout(new GridLayout(Math.min(places.size(), Config.MAX_RECORDS) + 5, 1));
         if (places.size() == 0){
-            JLabel label = new JLabel("There are no interesting places in the radius " + Config.RADIUS + " meters");
-            label.setHorizontalAlignment(JLabel.CENTER);
-            entryField.add(label);
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                JLabel label = new JLabel("There are no interesting places in the radius " + Config.RADIUS + " meters");
+                label.setHorizontalAlignment(JLabel.CENTER);
+                entryField.add(label);
+            });
             return;
         }
-        for (PlacesRecord place : places){
+        for (int i = 0; i < places.size() && i < Config.MAX_RECORDS * 3; i++){
+            PlacesRecord place = places.get(i);
             requester.requestDescription(place.getId()).thenAccept(this::showDescription);
         }
     }
@@ -135,9 +159,11 @@ public class View extends JFrame implements Runnable{
         if ("".equals(description.getName())){
             return;
         }
-        JLabel label = new JLabel(description.getName() + " " + description.getDescription());
-        label.setHorizontalAlignment(JLabel.CENTER);
-        entryField.add(label);
-        setContentPane(entryField);
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            JLabel label = new JLabel(description.getName() + " " + description.getDescription());
+            label.setHorizontalAlignment(JLabel.CENTER);
+            entryField.add(label);
+            setContentPane(entryField);
+        });
     }
 }
