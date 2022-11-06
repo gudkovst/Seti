@@ -18,9 +18,12 @@ public class View extends JFrame implements Runnable{
     private JTextField textNamePlace;
     private JLabel messFind;
     private boolean flagFind = false;
+    private JList<String> placesList;
+    private final DefaultListModel<String> listModel;
 
     public View(Requester req){
         requester = req;
+        listModel = new DefaultListModel<>();
     }
 
     @Override
@@ -94,6 +97,7 @@ public class View extends JFrame implements Runnable{
             entryField.setLayout(new GridLayout(locations.size(), 1));
             Button[] locationsButtons = new Button[locations.size()];
             entryField.removeAll();
+            listModel.removeAllElements();
             for (int i = 0; i < locations.size(); i++){
                 GeocodeRecord location = locations.get(i);
                 locationsButtons[i] = new Button(location.getName());
@@ -140,7 +144,7 @@ public class View extends JFrame implements Runnable{
     }
 
     private void findDescrPlaces(List<PlacesRecord> places){
-        entryField.setLayout(new GridLayout(Math.min(places.size(), Config.MAX_RECORDS) + 5, 1));
+        entryField.setLayout(new GridLayout(4, 1));
         if (places.size() == 0){
             javax.swing.SwingUtilities.invokeLater(() -> {
                 JLabel label = new JLabel("There are no interesting places in the radius " + Config.RADIUS + " meters");
@@ -149,8 +153,11 @@ public class View extends JFrame implements Runnable{
             });
             return;
         }
-        for (int i = 0; i < places.size() && i < Config.MAX_RECORDS * 3; i++){
-            PlacesRecord place = places.get(i);
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            placesList = new JList<>(listModel);
+            entryField.add(new JScrollPane(placesList));
+        });
+        for (PlacesRecord place : places) {
             requester.requestDescription(place.getId()).thenAccept(this::showDescription);
         }
     }
@@ -160,9 +167,9 @@ public class View extends JFrame implements Runnable{
             return;
         }
         javax.swing.SwingUtilities.invokeLater(() -> {
-            JLabel label = new JLabel(description.getName() + " " + description.getDescription());
-            label.setHorizontalAlignment(JLabel.CENTER);
-            entryField.add(label);
+            listModel.addElement(description.getName() + " " + description.getDescription());
+            int index = listModel.size() - 1;
+            placesList.ensureIndexIsVisible(index);
             setContentPane(entryField);
         });
     }
