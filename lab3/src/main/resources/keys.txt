@@ -1,0 +1,5 @@
+KEY_PLACES
+KEY_GEOCODE
+KEY_WEATHER
+
+//replace the entries above with your own keys
