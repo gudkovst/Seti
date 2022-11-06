@@ -5,4 +5,5 @@ public class Config {
     public static int HEIGHT = 500;
     public static double RADIUS = 1000;
     public static int MAX_RECORDS = 15;
+    public static String fileKeys = "src\\main\\resources\\keys.txt";
 }
