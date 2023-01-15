@@ -20,4 +20,6 @@ public class Config {
     public static int state_delay_ms = 1000;
     public static int confirmTime = state_delay_ms / 10;
     public static int aliveTime = 4 * state_delay_ms / 5;
+
+    public static int timeDrawing = 400;
 }
