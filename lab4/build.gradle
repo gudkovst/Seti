@@ -1,0 +1,68 @@
+plugins {
+    id 'java'
+    id 'application'
+    id "com.google.protobuf" version "0.9.1"
+}
+
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.20.1"
+    }
+    plugins {
+        javalite {
+            artifact = "com.google.protobuf:protoc-gen-javalite:3.0.0"
+        }
+    }
+}
+
+sourceSets {
+    main {
+        proto {
+            // In addition to the default 'src/main/proto'
+            srcDir 'src/main/proto'
+        }
+    }
+}
+
+group 'ru.nsu.gudkovst'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    junitVersion = '5.9.0'
+}
+
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Copy).all { duplicatesStrategy 'exclude' }
+
+application {
+    mainClass.set("application.Main")
+}
+
+dependencies {
+
+    implementation 'com.google.protobuf:protobuf-java:3.21.9'
+    implementation 'junit:junit:4.13.2'
+    implementation group: 'com.google.protobuf', name: 'protobuf-java', version: '3.21.9'
+    implementation 'org.projectlombok:lombok:1.18.24'
+    implementation 'org.jetbrains:annotations:20.1.0'
+
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+
+test {
+    useJUnitPlatform()
+}
