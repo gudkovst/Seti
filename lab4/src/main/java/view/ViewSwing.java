@@ -14,6 +14,7 @@ import java.util.List;
 public class ViewSwing extends JFrame implements View, Runnable {
     private final Controller controller;
     private final List<SnakesProto.GameAnnouncement> games;
+    private final List<String> gamesNames;
     private final JPanel entryField;
     private boolean isGame;
     private final ViewGameSwing viewGameSwing;
@@ -21,6 +22,7 @@ public class ViewSwing extends JFrame implements View, Runnable {
     public ViewSwing() throws IOException {
         controller = new Controller(this);
         games = new ArrayList<>();
+        gamesNames = new ArrayList<>();
         entryField = new JPanel();
         isGame = false;
         viewGameSwing = new ViewGameSwing(controller);
@@ -82,7 +84,12 @@ public class ViewSwing extends JFrame implements View, Runnable {
             });
         }
         for (SnakesProto.GameAnnouncement game : gamesMsg){
-            if (!games.contains(game)){
+            if (!gamesNames.contains(game.getGameName())){
+                gamesNames.add(game.getGameName());
+                games.add(game);
+            }
+            else {
+                games.removeIf(announcement -> announcement.getGameName().equals(game.getGameName()));
                 games.add(game);
             }
         }
