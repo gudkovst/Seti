@@ -27,7 +27,7 @@ public class MessageController {
         ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
         ExecutorService threadPool = Executors.newCachedThreadPool();
         int checkTime = Config.confirmTime / 5;
-        scheduledThreadPool.scheduleAtFixedRate(this::resend, checkTime, checkTime, TimeUnit.SECONDS);
+        scheduledThreadPool.scheduleAtFixedRate(this::resend, checkTime, checkTime, TimeUnit.MILLISECONDS);
         threadPool.execute(this::receive);
         threadPool.execute(this::listenMulticast);
     }

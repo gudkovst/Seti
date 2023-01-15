@@ -35,6 +35,7 @@ public class Controller extends KeyAdapter {
     private final Map<Integer, Color> playersColors;
     private MessageController msgController;
     private FieldController fieldController;
+    private SnakesProto.GameState currentState;
 
     public Controller(View view) throws IOException {
         this.user = null;
@@ -42,6 +43,19 @@ public class Controller extends KeyAdapter {
         this.view = view;
         games = new HashMap<>();
         playersColors = new HashMap<>();
+        currentState = null;
+    }
+
+    public SnakesProto.GameState getCurrentState() {
+        SnakesProto.GameState state = currentState;
+        currentState = null;
+        return state;
+    }
+
+    public void setCurrentState(SnakesProto.GameState state) {
+        if (currentState == null || currentState.getStateOrder() < state.getStateOrder()){
+            currentState = state;
+        }
     }
 
     public Color getPlayerColor(int id){
@@ -95,7 +109,7 @@ public class Controller extends KeyAdapter {
     }
 
     public void showGameState(SnakesProto.GameMessage.@NotNull StateMsg msg) {
-        view.showGameState(msg.getState());
+        setCurrentState(msg.getState());
         List<SnakesProto.GamePlayer> players = msg.getState().getPlayers().getPlayersList();
         for (SnakesProto.GamePlayer player : players){
             playersColors.put(player.getId(), new Color(player.getId()));
