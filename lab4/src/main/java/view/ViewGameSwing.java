@@ -8,13 +8,17 @@ import snakes.SnakesProto;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ViewGameSwing extends JFrame implements Runnable {
     private final Controller controller;
-    private int numState;
+    private final ScheduledExecutorService drawer;
 
     public ViewGameSwing(Controller controller){
         this.controller = controller;
+        drawer = Executors.newScheduledThreadPool(1);
     }
 
     @Override
@@ -25,12 +29,17 @@ public class ViewGameSwing extends JFrame implements Runnable {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setResizable(true);
         setVisible(true); // Show everything
+        drawer.scheduleAtFixedRate(this::draw, Config.timeDrawing, Config.timeDrawing, TimeUnit.MILLISECONDS);
+    }
+
+    private void draw(){
+        SnakesProto.GameState state = controller.getCurrentState();
+        if (state != null){
+            showGameState(state);
+        }
     }
 
     public void showGameState(SnakesProto.GameState state){
-        if (numState > state.getStateOrder())
-            return;
-        numState = state.getStateOrder();
         Field field = controller.getField(state);
         javax.swing.SwingUtilities.invokeLater(() -> {
             String[] columnNames = {"Player", "Score"};
